@@ -69,17 +69,17 @@ async def create_user(new_user: BaseUser, db: db_dependency):
     return db_user
 
 
-@router.get('/me', summary='Get details of currently logged in user')
-async def get_me(user: models.models.User = Depends(get_current_user)):
-    return user
-
-
-@router.get("/users/me")
-async def read_users_me(current_user: Annotated[models.models.User, Depends(get_current_user)]):
-    return current_user
-
-
-def fake_decode_token(token):
-    return models.User(
-        username=token + "fakedecoded", email="john@example.com", name="John Doe"
-    )
+# @router.get('/me', summary='Get details of currently logged in user')
+# async def get_me(user: models.models.User = Depends(get_current_user)):
+#     return user
+#
+#
+# @router.get("/users/me")
+# async def read_users_me(current_user: Annotated[models.models.User, Depends(get_current_user)]):
+#     return current_user
+#
+#
+# def fake_decode_token(token):
+#     return models.User(
+#         username=token + "fakedecoded", email="john@example.com", name="John Doe"
+#     )
