@@ -6,6 +6,14 @@ from sqlalchemy.orm import relationship
 from utils.database import Base
 
 
+class Order(Base):
+    __tablename__ = 'Order'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String(100))
+    quantity = Column(Integer)
+
+
 class Recipe(Base):
     __tablename__ = 'Recipe'
 
