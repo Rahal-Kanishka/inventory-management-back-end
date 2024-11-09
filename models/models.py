@@ -60,7 +60,7 @@ class Ingredient(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100), unique=True)
-    description = Column(String(500))
+    description = Column(String(255))
 
 
 class GRN(Base):
