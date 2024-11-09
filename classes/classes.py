@@ -11,9 +11,7 @@ class BaseIngredient(BaseModel):
 
 class BaseRecipeCreate(BaseModel):
     name: str
-    id: int
     description: str
-    instructions: str
 
 
 class BaseRecipe(BaseModel):
