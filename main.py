@@ -1,12 +1,13 @@
 from fastapi import FastAPI, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
-from routes import receipyRoute, orderRoute
+from routes import receipyRoute, orderRoute, ingredientRoute
 from routes import userRoute
 from utils.database import engine
 from models import models
 
 app = FastAPI(title="Group5")
 app.include_router(receipyRoute.router)
+app.include_router(ingredientRoute.router)
 app.include_router(userRoute.router)
 app.include_router(orderRoute.router)
 models.Base.metadata.create_all(bind=engine)

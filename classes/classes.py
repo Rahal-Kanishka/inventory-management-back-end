@@ -5,10 +5,8 @@ from pydantic import BaseModel
 
 
 class BaseIngredient(BaseModel):
-    id: int
     name: str
     description: str
-    image: str
 
 
 class BaseRecipeCreate(BaseModel):
