@@ -29,7 +29,7 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
-@router.post("/login/", summary="Create access and refresh tokens for user")
+@router.post("/user/login/", summary="Create access and refresh tokens for user")
 async def login_user(db: db_dependency, form_data: OAuth2PasswordRequestForm = Depends()):
     user = db.query(models.models.User).filter(models.models.User.username == form_data.username).first()
 
@@ -54,7 +54,7 @@ async def login_user(db: db_dependency, form_data: OAuth2PasswordRequestForm = D
 #     return user
 
 
-@router.post("/user")
+@router.post("/user/create")
 async def create_user(new_user: BaseUser, db: db_dependency):
     # check if the username already exists
     user = db.query(models.models.User).filter(models.models.User.id == new_user.username).first()
@@ -74,9 +74,14 @@ async def create_user(new_user: BaseUser, db: db_dependency):
 #     return user
 #
 #
-# @router.get("/users/me")
-# async def read_users_me(current_user: Annotated[models.models.User, Depends(get_current_user)]):
-#     return current_user
+@router.get("/users/me")
+async def read_users_me(current_user: Annotated[models.models.User, Depends(get_current_user)]):
+    return current_user
+
+
+@router.get("/user/all")
+async def get_all_users(db: db_dependency):
+    return db.query(models.models.User).all()
 #
 #
 # def fake_decode_token(token):
