@@ -38,6 +38,7 @@ async def updateIngredient(db: db_dependency):
 async def createIngredient(db: db_dependency, ingredient: BaseIngredient):
     db_ingredient = models.models.Ingredient(**ingredient.dict())
     db_ingredient.created_by = 1
+    db_ingredient.currentQuantity = 0
     db.add(db_ingredient)
     db.commit()
     db.refresh(db_ingredient)
