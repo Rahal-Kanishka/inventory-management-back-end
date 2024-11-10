@@ -1,6 +1,7 @@
 from datetime import datetime
+from datetime import date
 
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, Table, DateTime
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, Table, DateTime, Date
 from sqlalchemy.orm import relationship
 
 from utils.database import Base
@@ -15,7 +16,7 @@ class Order(Base):
 
 
 class Recipe(Base):
-    __tablename__ = 'Recipe'
+    __tablename__ = 'recipe'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
@@ -41,7 +42,7 @@ class Product(Base):
     description = Column(String(500))
 
 class User(Base):
-    __tablename__ = 'User'
+    __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
@@ -71,3 +72,15 @@ class GRN(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     issued_date = Column(DateTime, default=datetime.now)
     type = Column(Integer, default=0)
+
+class Batch(Base):
+    __tablename__ = 'batch'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100))
+    productionDate = Column(Date)
+    Recipe_id = Column(Integer, ForeignKey("recipe.id"))
+    initialQuantity = Column(Integer)
+    availableQuantity = Column(Integer)
+    dateOfExpiry = Column(Date)
+    User_id = Column(Integer, ForeignKey("user.id"))

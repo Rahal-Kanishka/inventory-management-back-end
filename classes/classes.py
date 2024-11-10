@@ -1,5 +1,7 @@
 from datetime import datetime
+from datetime import date
 from typing import List
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -30,3 +32,15 @@ class BaseUser(BaseModel):
     email: str
     type: int
     created_on: datetime = datetime.now()
+
+class BaseBatchCreate(BaseModel):
+    name: str
+    productionDate: date
+    Recipe_id: int
+    initialQuantity: int
+    availableQuantity: int
+    dateOfExpiry: date
+    User_id: int
+
+class BaseBatch(BaseBatchCreate):
+    id: Optional[int] = None
