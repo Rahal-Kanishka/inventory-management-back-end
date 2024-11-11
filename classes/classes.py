@@ -44,3 +44,21 @@ class BaseBatchCreate(BaseModel):
 
 class BaseBatch(BaseBatchCreate):
     id: Optional[int] = None
+
+class LocationBase(BaseModel):
+    name: str
+    address: str
+
+class LocationCreate(LocationBase):
+    pass
+
+class LocationUpdate(LocationBase):
+    pass
+
+class LocationResponse(LocationBase):
+    id: int
+    name: str
+    address: str
+
+    class Config:
+        from_attributes = True
