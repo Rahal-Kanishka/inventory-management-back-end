@@ -8,13 +8,34 @@ from pydantic import BaseModel
 
 class BaseIngredient(BaseModel):
     name: str
-    description: str
+    description: Optional[str] = ""
 
+class RecipeIngredientCreate(BaseModel):
+    name: str
+    quantity: int
+
+class IngredientInfo(BaseModel):
+    name: str
+    quantity: int
+
+class RecipeViewResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = ""
+    product_type: Optional[str] = ""
+    ingredients: List[IngredientInfo] = []
 
 class BaseRecipeCreate(BaseModel):
     name: str
-    description: str
+    description: Optional[str] = ""
+    product_name: Optional[str] = "Miscellaneous"
+    ingredients: List[RecipeIngredientCreate]
 
+
+class RecipeResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = ""
 
 class BaseRecipe(BaseModel):
     name: str
