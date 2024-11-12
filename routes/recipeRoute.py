@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Annotated, Optional, List
 
 from models import models
-from classes.classes import BaseRecipeCreate, RecipeResponse, RecipeViewResponse, IngredientInfo
+from classes.classes import BaseRecipeCreate, RecipeResponse, RecipeViewResponse, IngredientInfo, BaseRecipeUpdate, RecipeIngredientUpdate;
 from utils.database import SessionLocal
 
 import logging
@@ -179,3 +179,83 @@ async def view_all_recipes(db: db_dependency):
         )
 
     return all_recipes
+
+
+@router.patch("/recipe/update/{recipe_id}", response_model=RecipeViewResponse)
+async def update_recipe(recipe_id: int, recipe_data: BaseRecipeUpdate, db: db_dependency):
+    # Fetch the recipe
+    recipe = db.query(models.Recipe).filter(models.Recipe.id == recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    # Update recipe name and description if provided
+    if recipe_data.name:
+        recipe.name = recipe_data.name
+    if recipe_data.description:
+        recipe.description = recipe_data.description
+
+    # Update product type if provided
+    if recipe_data.product_name:
+        product_type = db.query(models.ProductType).filter(models.ProductType.name == recipe_data.product_name).first()
+        if not product_type:
+            product_type = models.ProductType(name=recipe_data.product_name, code=recipe_data.product_name[:4].upper(),
+                                              batchSize=0, expireDuration=0)
+            db.add(product_type)
+            db.commit()
+            db.refresh(product_type)
+
+        # Update recipe_has_producttype
+        recipe_product_type = db.query(models.Recipe_has_producttype).filter(
+            models.Recipe_has_producttype.Recipe_id == recipe.id).first()
+        if recipe_product_type:
+            recipe_product_type.ProductType_id = product_type.id
+        else:
+            recipe_product_type = models.Recipe_has_producttype(Recipe_id=recipe.id, ProductType_id=product_type.id)
+            db.add(recipe_product_type)
+
+    # Update ingredients
+    if recipe_data.ingredients:
+        existing_ingredients = {ri.Ingredient_id: ri.quantity for ri in db.query(models.RecipeHasIngredient).filter(
+            models.RecipeHasIngredient.Recipe_id == recipe.id)}
+
+        for ingredient_data in recipe_data.ingredients:
+            # Check if ingredient already exists
+            ingredient = db.query(models.Ingredient).filter(models.Ingredient.name == ingredient_data.name).first()
+            if not ingredient:
+                ingredient = models.Ingredient(name=ingredient_data.name, currentQuantity=0, description="")
+                db.add(ingredient)
+                db.commit()
+                db.refresh(ingredient)
+
+            # If ingredient is new to this recipe, add it
+            if ingredient.id not in existing_ingredients:
+                recipe_ingredient = models.RecipeHasIngredient(
+                    Recipe_id=recipe.id,
+                    Ingredient_id=ingredient.id,
+                    quantity=ingredient_data.quantity
+                )
+                db.add(recipe_ingredient)
+            else:
+                # Update quantity if different
+                recipe_ingredient = db.query(models.RecipeHasIngredient).filter(
+                    models.RecipeHasIngredient.Recipe_id == recipe.id,
+                    models.RecipeHasIngredient.Ingredient_id == ingredient.id
+                ).first()
+                if recipe_ingredient.quantity != ingredient_data.quantity:
+                    recipe_ingredient.quantity = ingredient_data.quantity
+
+            # Remove the ingredient from the tracking dictionary if it's still part of the recipe
+            existing_ingredients.pop(ingredient.id, None)
+
+        # Remove any ingredients that are no longer needed
+        for ingredient_id in existing_ingredients:
+            db.query(models.RecipeHasIngredient).filter(
+                models.RecipeHasIngredient.Recipe_id == recipe.id,
+                models.RecipeHasIngredient.Ingredient_id == ingredient_id
+            ).delete()
+
+    # Commit all changes
+    db.commit()
+
+    # Fetch updated recipe with related data
+    return await view_recipe(recipe_id, db)

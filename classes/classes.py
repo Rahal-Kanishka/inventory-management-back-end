@@ -31,6 +31,16 @@ class BaseRecipeCreate(BaseModel):
     product_name: Optional[str] = "Miscellaneous"
     ingredients: List[RecipeIngredientCreate]
 
+class RecipeIngredientUpdate(BaseModel):
+    name: str
+    quantity: int
+
+class BaseRecipeUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    product_name: Optional[str] = None
+    ingredients: Optional[List[RecipeIngredientUpdate]] = None
+
 
 class RecipeResponse(BaseModel):
     id: int
