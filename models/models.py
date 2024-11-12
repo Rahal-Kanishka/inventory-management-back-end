@@ -65,6 +65,7 @@ class Ingredient(Base):
     name = Column(String(100), unique=True)
     description = Column(String(255))
     currentQuantity = Column(Integer)
+    image = Column(String)
 
 
 class GRN(Base):
