@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, status, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from routes import orderRoute, ingredientRoute, batchRoute, locationRoute, recipeRoute
+from routes import orderRoute, ingredientRoute, batchRoute, locationRoute, recipeRoute, grnRoute
 from routes import userRoute
 from utils.database import engine
 from models import models
@@ -19,6 +19,8 @@ app.include_router(batchRoute.router)
 app.include_router(locationRoute.router)
 
 app.include_router(recipeRoute.router)
+
+app.include_router(grnRoute.router)
 
 models.Base.metadata.create_all(bind=engine)
 
