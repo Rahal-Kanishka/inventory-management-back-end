@@ -16,7 +16,7 @@ class Order(Base):
 
 
 class Recipe(Base):
-    __tablename__ = 'recipe'
+    __tablename__ = 'Recipe'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
@@ -72,8 +72,8 @@ class GRN(Base):
     __tablename__ = 'GRN'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    issued_date = Column(DateTime, default=datetime.now)
-    type = Column(Integer, default=0)
+    issuedDate = Column(DateTime, default=datetime.now)
+    quantity = Column(Integer, default=0)
 
 class Batch(Base):
     __tablename__ = 'batch'
@@ -105,3 +105,8 @@ class Recipe_has_producttype(Base):
     ProductType_id = Column(Integer, ForeignKey('producttype.id'), primary_key=True)  # Foreign key reference to `producttype`
 
 
+class GRN_has_Ingredient(Base):
+    __tablename__ = 'GRN_has_Ingredient'
+
+    GRN_id = Column(Integer, ForeignKey('GRN.id'), primary_key=True)
+    Ingredient_id = Column(Integer, ForeignKey('Ingredient.id'), primary_key=True)

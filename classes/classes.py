@@ -26,6 +26,24 @@ class IngredientInfo(BaseModel):
     name: str
     quantity: int
 
+# create GRN
+class BaseGRN(BaseModel):
+    issuedDate: date
+    ingredients: List[IngredientInfo] = []
+
+# response for create GRN
+class GRNResponse(BaseModel):
+    id: int
+    issuedDate: date
+    ingredients: List[IngredientInfo] = []
+
+
+# update GRN
+class GRNUpdate(BaseModel):
+    issuedDate: Optional[date] = None
+    ingredients: Optional[List[IngredientInfo]] = None
+
+
 class RecipeViewResponse(BaseModel):
     id: int
     name: str
