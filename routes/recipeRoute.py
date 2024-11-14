@@ -181,7 +181,7 @@ async def view_all_recipes(db: db_dependency):
     return all_recipes
 
 
-@router.patch("/recipe/update/{recipe_id}", response_model=RecipeViewResponse)
+@router.put("/recipe/update/{recipe_id}", response_model=RecipeViewResponse)
 async def update_recipe(recipe_id: int, recipe_data: BaseRecipeUpdate, db: db_dependency):
     # Fetch the recipe
     recipe = db.query(models.Recipe).filter(models.Recipe.id == recipe_id).first()
