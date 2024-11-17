@@ -1,6 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session, joinedload
 from typing import Annotated, List
+
+from starlette import status
+
 from classes.classes import LocationCreate, LocationUpdate, LocationResponse
 from fastapi import HTTPException
 
@@ -75,3 +78,46 @@ async def delete_location(id: int, db: db_dependency):
     db.delete(location)
     db.commit()
     return {"message": "Location deleted successfully"}
+
+
+@router.delete("/location/remove_user/{user_id}/{location_id}", summary="remove user from a locationr")
+async def remove_user_from_location(db: db_dependency, user_id: int, location_id: int):
+
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found!")
+
+    location = db.query(models.Location).filter(models.Location.id == location_id).first()
+    if location is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Location not found!")
+
+    location.users.remove(user)
+    # Get users assigned to location
+    db.add(location)
+    db.commit()
+
+    return await get_locations_with_assigned_users(db, user_id)
+
+
+@router.put("/location/assign_user/{user_id}/{location_id}", summary="Assign location to a user")
+async def assign_user_to_location(db: db_dependency, user_id: int, location_id: int):
+
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found!")
+
+    location = db.query(models.Location).filter(models.Location.id == location_id).first()
+    if location is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Location not found!")
+
+    location.users.append(user)
+    db.add(location)
+    db.commit()
+    return await get_locations_with_assigned_users(db, user_id)
+
+
+async def get_locations_with_assigned_users(db, location_id: int):
+    return (db.query(models.Location)
+            .options(joinedload(models.Location.users))
+            .filter(models.Location.id == location_id)  # Join the locations relationship
+            .all())
