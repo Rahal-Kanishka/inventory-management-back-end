@@ -91,11 +91,54 @@ async def get_all_users_with_locations(db: db_dependency):
 
 @router.get("/user/{location_id}", summary="Get a user with it's assigned location")
 async def get_users_by_location(db: db_dependency, location_id: int):
-
     location = db.query(models.models.Location).filter(models.models.Location.id == location_id).first()
     if location is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Location not found!")
 
     # Get users assigned to location
-    return (db.query(models.models.User).options(joinedload(models.models.User.locations)).
-            where(models.models.Location.id == location_id).one())
+    return (db.query(models.models.User)
+            .join(models.models.User.locations)  # Join the locations relationship
+            .filter(models.models.Location.id == location_id)  # Eager load locations if needed
+            .all())
+
+
+@router.put("/user/assign_location/{user_id}/{location_id}", summary="Assign location to a user")
+async def assign_user_to_location(db: db_dependency, user_id: int, location_id: int):
+
+    user = db.query(models.models.User).filter(models.models.User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found!")
+
+    location = db.query(models.models.Location).filter(models.models.Location.id == location_id).first()
+    if location is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Location not found!")
+
+    location.users.append(user)
+    db.add(location)
+    db.commit()
+    return await get_user_assigned_to_locations(db, user_id)
+
+
+@router.delete("/user/remove_location/{user_id}/{location_id}", summary="remove user from a locationr")
+async def remove_user_from_location(db: db_dependency, user_id: int, location_id: int):
+    user = db.query(models.models.User).filter(models.models.User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found!")
+
+    location = db.query(models.models.Location).filter(models.models.Location.id == location_id).first()
+    if location is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Location not found!")
+
+    location.users.remove(user)
+    # Get users assigned to location
+    db.add(location)
+    db.commit()
+
+    return await get_user_assigned_to_locations(db, user_id)
+
+
+async def get_user_assigned_to_locations(db, user_id):
+    return (db.query(models.models.User)
+            .options(joinedload(models.models.User.locations))
+            .filter(models.models.User.id == user_id)  # Join the locations relationship
+            .all())
