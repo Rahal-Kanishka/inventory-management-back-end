@@ -7,7 +7,7 @@ from starlette import status
 
 import models.models
 from classes.classes import BaseRecipe, BaseIngredient, BaseUser
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import Annotated
 
 from utils.auth import get_current_user
@@ -82,9 +82,20 @@ async def read_users_me(current_user: Annotated[models.models.User, Depends(get_
 @router.get("/user/all")
 async def get_all_users(db: db_dependency):
     return db.query(models.models.User).all()
-#
-#
-# def fake_decode_token(token):
-#     return models.User(
-#         username=token + "fakedecoded", email="john@example.com", name="John Doe"
-#     )
+
+
+@router.get("/user/locations/all", summary='Get all users with assigned locations')
+async def get_all_users_with_locations(db: db_dependency):
+    return db.query(models.models.User).options(joinedload(models.models.User.locations)).all()
+
+
+@router.get("/user/{location_id}", summary="Get a user with it's assigned location")
+async def get_users_by_location(db: db_dependency, location_id: int):
+
+    location = db.query(models.models.Location).filter(models.models.Location.id == location_id).first()
+    if location is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Location not found!")
+
+    # Get users assigned to location
+    return (db.query(models.models.User).options(joinedload(models.models.User.locations)).
+            where(models.models.Location.id == location_id).one())

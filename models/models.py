@@ -42,13 +42,24 @@ class Product(Base):
     description = Column(String(500))
     ProductType_id = Column(Integer, ForeignKey('producttype.id'))
 
+
+class LocationHasUsers(Base):
+    __tablename__ = 'Location_has_User'
+
+    Location_id = Column(Integer, ForeignKey("Location.id"), primary_key=True)
+    User_id = Column(Integer, ForeignKey("User.id"), primary_key=True)
+
+
 class User(Base):
-    __tablename__ = 'user'
+    __tablename__ = 'User'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
     email = Column(String(500))
-    contact_no = Column(String(500))
+    contactNo = Column(String(500))
+    createdOn = Column(String(500))
+    locations = relationship("Location", secondary="Location_has_User", back_populates='users')
+
 
 class Location(Base):
     __tablename__ = 'Location'
@@ -56,6 +67,7 @@ class Location(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
     address = Column(String(500))
+    users = relationship("User", secondary="Location_has_User", back_populates='locations')
 
 
 class Ingredient(Base):
@@ -93,7 +105,7 @@ class Batch(Base):
 class RecipeHasIngredient(Base):
     __tablename__ = 'Recipe_has_Ingredient'
 
-    Recipe_id = Column(Integer, ForeignKey("recipe.id"), primary_key=True)
+    Recipe_id = Column(Integer, ForeignKey("Recipe.id"), primary_key=True)
     Ingredient_id = Column(Integer, ForeignKey("Ingredient.id"), primary_key=True)
     quantity = Column(Integer)
 

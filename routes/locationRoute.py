@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import Annotated, List
 from classes.classes import LocationCreate, LocationUpdate, LocationResponse
 from fastapi import HTTPException
@@ -38,8 +38,9 @@ async def get_location_by_id(id: int, db: db_dependency):
     return location
 
 
-
-
+@router.get("/location/users/all", summary='Get all locations with assigned users')
+async def get_all_locations_with_users(db: db_dependency):
+    return db.query(models.Location).options(joinedload(models.Location.users)).all()
 
 
 @router.post("/location/add", response_model=LocationResponse)
