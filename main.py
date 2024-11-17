@@ -1,5 +1,7 @@
-from fastapi import FastAPI, Depends, status, APIRouter
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
+
 from routes import orderRoute, ingredientRoute, batchRoute, locationRoute, recipeRoute, grnRoute
 from routes import userRoute
 from utils.database import engine
@@ -33,6 +35,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def exception_handling(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        return JSONResponse(status_code=500, content='Error occurred: {}'.format(exc))
 
 
 @app.get("/")
