@@ -3,10 +3,11 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy import join
 from starlette import status
 
 import models.models
-from classes.classes import BaseRecipe, BaseIngredient, BaseUser
+from classes.classes import BaseRecipe, BaseIngredient, BaseUser, SearchUsersForLocation
 from sqlalchemy.orm import Session, joinedload
 from typing import Annotated
 
@@ -69,7 +70,6 @@ async def create_user(new_user: BaseUser, db: db_dependency):
     return db_user
 
 
-
 @router.get("/users/me")
 async def read_users_me(current_user: Annotated[models.models.User, Depends(get_current_user)]):
     return current_user
@@ -80,10 +80,19 @@ async def get_all_users(db: db_dependency):
     return db.query(models.models.User).all()
 
 
-@router.get("/user/{name}", summary='Filter users by a part of their name')
-async def get_users_by_name(db: db_dependency, name: str):
-    return (db.query(models.models.User)
-            .filter(models.models.User.name.ilike(f"%{name}%")) .all())
+@router.get("/user/search_by_name", summary='Filter users by a part of their name for a location')
+async def get_users_by_name_and_location(db: db_dependency, searchUsersForLocation: SearchUsersForLocation = Depends()):
+
+    # remove suggested users if they have already been assign to the location
+    assigned_users = set((db.query(models.models.User)
+                          .join(models.models.User.locations)
+                          .filter(models.models.Location.id == searchUsersForLocation.locationID)
+                          .all()))
+    suggested_users = set((db.query(models.models.User)
+                           .filter(models.models.User.name.ilike(f"%{searchUsersForLocation.name}%"))
+                           .all()))
+    left_over_users = suggested_users - assigned_users
+    return left_over_users
 
 
 @router.get("/user/locations/all", summary='Get all users with assigned locations')
@@ -105,7 +114,6 @@ async def get_users_by_location(db: db_dependency, location_id: int):
 
 @router.put("/user/assign_location/{user_id}/{location_id}", summary="Assign location to a user")
 async def assign_user_to_location(db: db_dependency, user_id: int, location_id: int):
-
     user = db.query(models.models.User).filter(models.models.User.id == user_id).first()
     if user is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found!")
