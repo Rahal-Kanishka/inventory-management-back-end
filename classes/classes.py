@@ -119,3 +119,8 @@ class LocationResponse(LocationBase):
 
     class Config:
         from_attributes = True
+
+
+class SearchUsersForLocation(BaseModel):
+    name: str
+    locationID: int
