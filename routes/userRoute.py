@@ -69,11 +69,7 @@ async def create_user(new_user: BaseUser, db: db_dependency):
     return db_user
 
 
-# @router.get('/me', summary='Get details of currently logged in user')
-# async def get_me(user: models.models.User = Depends(get_current_user)):
-#     return user
-#
-#
+
 @router.get("/users/me")
 async def read_users_me(current_user: Annotated[models.models.User, Depends(get_current_user)]):
     return current_user
@@ -84,21 +80,26 @@ async def get_all_users(db: db_dependency):
     return db.query(models.models.User).all()
 
 
+@router.get("/user/{name}", summary='Filter users by a part of their name')
+async def get_users_by_name(db: db_dependency, name: str):
+    return (db.query(models.models.User)
+            .filter(models.models.User.name.ilike(f"%{name}%")) .all())
+
+
 @router.get("/user/locations/all", summary='Get all users with assigned locations')
 async def get_all_users_with_locations(db: db_dependency):
     return db.query(models.models.User).options(joinedload(models.models.User.locations)).all()
 
 
-@router.get("/user/{location_id}", summary="Get a user with it's assigned location")
+@router.get("/user/location/{location_id}", summary="Get assigned Users for a Location")
 async def get_users_by_location(db: db_dependency, location_id: int):
     location = db.query(models.models.Location).filter(models.models.Location.id == location_id).first()
     if location is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Location not found!")
-
     # Get users assigned to location
     return (db.query(models.models.User)
-            .join(models.models.User.locations)  # Join the locations relationship
-            .filter(models.models.Location.id == location_id)  # Eager load locations if needed
+            .join(models.models.User.locations)
+            .filter(models.models.Location.id == location_id)
             .all())
 
 
