@@ -85,7 +85,6 @@ class GRN(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     issuedDate = Column(DateTime, default=datetime.now)
-    quantity = Column(Integer, default=0)
 
 class Batch(Base):
     __tablename__ = 'batch'
@@ -122,3 +121,4 @@ class GRN_has_Ingredient(Base):
 
     GRN_id = Column(Integer, ForeignKey('GRN.id'), primary_key=True)
     Ingredient_id = Column(Integer, ForeignKey('Ingredient.id'), primary_key=True)
+    quantity = Column(Integer, default=0)
