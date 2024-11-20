@@ -6,7 +6,8 @@ from routes import orderRoute, ingredientRoute, batchRoute, locationRoute, recip
 from routes import userRoute
 from utils.database import engine
 from models import models
-
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 
 
