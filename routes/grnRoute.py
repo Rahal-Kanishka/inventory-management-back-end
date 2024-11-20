@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Annotated, Optional, List
@@ -34,7 +36,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 @router.post("/grn/add", response_model=GRNResponse)
 async def create_GRN(grn_data: BaseGRN, db: db_dependency):
     # create new GRN tuple
-    new_GRN = models.GRN(issuedDate=grn_data.issuedDate)
+    new_GRN = models.GRN(issuedDate=datetime.now())
     db.add(new_GRN)
     # iterate through the ingredients
     for ingredient_data in grn_data.ingredients:

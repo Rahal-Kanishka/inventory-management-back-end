@@ -28,13 +28,12 @@ class IngredientInfo(BaseModel):
 
 # create GRN
 class BaseGRN(BaseModel):
-    issuedDate: date
     ingredients: List[IngredientInfo] = []
 
 # response for create GRN
 class GRNResponse(BaseModel):
     id: int
-    issuedDate: date
+    issuedDate: datetime
     ingredients: List[IngredientInfo] = []
 
 
