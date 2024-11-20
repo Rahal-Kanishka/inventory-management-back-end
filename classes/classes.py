@@ -82,13 +82,21 @@ class BaseRecipe(BaseModel):
 
 
 class BaseUser(BaseModel):
+    name: str
+    email: str
+    contactNo: str
+    password: str
+    UserType_id: int
+    createdOn: datetime = datetime.now()
+
+
+class UpdateBaseUser(BaseModel):
     id: int
     name: str
-    username: str
-    password: str
     email: str
-    type: int
-    created_on: datetime = datetime.now()
+    contactNo: str
+    password: str
+    UserType_id: int
 
 class BaseBatchCreate(BaseModel):
     name: str
