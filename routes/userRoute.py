@@ -7,7 +7,7 @@ from sqlalchemy import join
 from starlette import status
 
 import models.models
-from classes.classes import BaseRecipe, BaseIngredient, BaseUser, SearchUsersForLocation
+from classes.classes import BaseRecipe, BaseIngredient, BaseUser, SearchUsersForLocation, UpdateBaseUser
 from sqlalchemy.orm import Session, joinedload
 from typing import Annotated
 
@@ -57,17 +57,37 @@ async def login_user(db: db_dependency, form_data: OAuth2PasswordRequestForm = D
 
 @router.post("/user/create")
 async def create_user(new_user: BaseUser, db: db_dependency):
-    # check if the username already exists
-    user = db.query(models.models.User).filter(models.models.User.id == new_user.username).first()
+    # check if the uer already exists
+    user = db.query(models.models.User).filter(models.models.User.email == new_user.email).first()
     if user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="username already exists")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
     # creating a new user
     db_user = models.models.User(**new_user.dict())
-    db_user.password = get_hashed_password(db_user.password)
-    db_user.created_at = datetime.now()
+    # db_user.password = get_hashed_password(db_user.password)
     db.add(db_user)
     db.commit()
-    return db_user
+    db.refresh(db_user)
+    return (db.query(models.models.User)
+            .options(joinedload(models.models.User.userType))
+            .filter(models.models.User.id == db_user.id)
+            .first())
+
+
+@router.put("/user/update/")
+async def update_user(update_user_data: UpdateBaseUser, db: db_dependency):
+    # check if the user already exists
+    db_user = db.query(models.models.User).filter(models.models.User.email == update_user_data.email).first()
+    if db_user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User does not exists")
+    db_user = models.models.User(**update_user_data.dict())
+    db_user = db.merge(db_user)
+    db.commit()
+    db.refresh(db_user)
+    print('updated: ',db_user.__dict__)
+    return (db.query(models.models.User)
+            .options(joinedload(models.models.User.userType))
+            .filter(models.models.User.id == db_user.id)
+            .first())
 
 
 @router.get("/users/me")
@@ -77,7 +97,14 @@ async def read_users_me(current_user: Annotated[models.models.User, Depends(get_
 
 @router.get("/user/all")
 async def get_all_users(db: db_dependency):
-    return db.query(models.models.User).all()
+    return (db.query(models.models.User)
+            .options(joinedload(models.models.User.userType))
+            .all())
+
+
+@router.get("/user/type/all")
+async def get_all_user_types(db: db_dependency):
+    return db.query(models.models.UserType).all()
 
 
 @router.get("/user/search_by_name", summary='Filter users by a part of their name for a location')
