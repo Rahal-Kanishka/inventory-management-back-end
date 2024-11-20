@@ -28,7 +28,7 @@ class IngredientInfo(BaseModel):
 
 # create GRN
 class BaseGRN(BaseModel):
-    issuedDate: date
+    issuedDate: datetime
     ingredients: List[IngredientInfo] = []
 
 # response for create GRN
