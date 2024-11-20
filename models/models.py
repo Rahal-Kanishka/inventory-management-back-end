@@ -58,7 +58,18 @@ class User(Base):
     email = Column(String(500))
     contactNo = Column(String(500))
     createdOn = Column(String(500))
+    password = Column(String(500))
+    UserType_id = Column(Integer, ForeignKey('UserType.id'))
     locations = relationship("Location", secondary="Location_has_User", back_populates='users')
+    userType = relationship("UserType", back_populates='user')
+
+
+class UserType(Base):
+    __tablename__ = 'UserType'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String(100))
+    user = relationship("User", back_populates='userType')
 
 
 class Location(Base):
