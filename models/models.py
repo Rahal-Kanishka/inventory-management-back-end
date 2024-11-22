@@ -24,7 +24,7 @@ class Recipe(Base):
 
 
 class ProductType(Base):
-    __tablename__ = 'producttype'
+    __tablename__ = 'ProductType'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
@@ -121,10 +121,10 @@ class RecipeHasIngredient(Base):
 
 
 class Recipe_has_producttype(Base):
-    __tablename__ = 'recipe_has_producttype'  # Matches the table name in your database
+    __tablename__ = 'Recipe_has_ProductType'  # Matches the table name in your database
 
-    Recipe_id = Column(Integer, ForeignKey('recipe.id'), primary_key=True)  # Foreign key reference to `recipe`
-    ProductType_id = Column(Integer, ForeignKey('producttype.id'), primary_key=True)  # Foreign key reference to `producttype`
+    Recipe_id = Column(Integer, ForeignKey('Recipe.id'), primary_key=True)  # Foreign key reference to `recipe`
+    ProductType_id = Column(Integer, ForeignKey('ProductType.id'), primary_key=True)  # Foreign key reference to `producttype`
 
 
 class GRN_has_Ingredient(Base):
