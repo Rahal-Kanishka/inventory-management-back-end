@@ -17,8 +17,8 @@ console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 logger.addHandler(console_handler)
 
-
 router = APIRouter()
+
 
 def get_db():
     db = SessionLocal()
@@ -27,8 +27,10 @@ def get_db():
     finally:
         db.close()
 
+
 # Dependency annotation
 db_dependency = Annotated[Session, Depends(get_db)]
+
 
 # need create, read, update, delete
 
@@ -62,8 +64,8 @@ async def create_GRN(grn_data: BaseGRN, db: db_dependency):
             db.commit()
 
             db.refresh(new_GRN)
-        
-    return GRNResponse (
+
+    return GRNResponse(
         id=new_GRN.id,
         issuedDate=new_GRN.issuedDate,
         ingredients=grn_data.ingredients
@@ -113,7 +115,7 @@ async def view_grn(grn_id: int, db: db_dependency):
     grn = db.query(models.GRN).filter(models.GRN.id == grn_id).first()
     if not grn:
         raise HTTPException(status_code=404, detail="GRN not found")
-    
+
     # get ingredients and quantities for the grn
     ingredients_data = (
         db.query(models.Ingredient.name, models.GRN_has_Ingredient.quantity)
@@ -137,56 +139,100 @@ async def view_grn(grn_id: int, db: db_dependency):
 
 
 # update - needs to update GRN_has_ingredients and Ingredients
-@router.patch("/grn/update/{grn_id}", response_model=GRNResponse)
+@router.put("/grn/update/{grn_id}", response_model=GRNResponse)
 async def update_grn(grn_id: int, grn_data: GRNUpdate, db: db_dependency):
     # Fetch the GRN to ensure the grn exists
     grn = db.query(models.GRN).filter(models.GRN.id == grn_id).first()
     if not grn:
         raise HTTPException(status_code=404, detail="GRN not found")
-    
+    old_quantity_from_grn = 0
     # Update recipe name and description if provided
     if grn_data.issuedDate:
         grn.issuedDate = grn_data.issuedDate
-    
+
+    # list of ingredients for the grn
+    grn_ingredient_record = (db.query(models.GRN_has_Ingredient)
+                             .join(models.GRN, models.GRN_has_Ingredient.GRN_id == models.GRN.id)
+                             .filter(models.GRN_has_Ingredient.GRN_id == grn.id).all())
+
     # Update ingredients if ingredients are different in update
     if grn_data.ingredients:
         # loop through each updated ingredient
-        for ingredient_data in grn_data.ingredients:
+        for new_ingredient_data in grn_data.ingredients:
             # find ingredient in Ingredient table
-            ingredient = db.query(models.Ingredient).filter(models.Ingredient.name == ingredient_data.name).first()
-            # check whether ingredient is in table
+            ingredient = db.query(models.Ingredient).filter(models.Ingredient.name == new_ingredient_data.name).first()
             if ingredient:
-                # if ingredient is found
-                # find old quantity to update ingredient table with
-                old = db.query(models.GRN_has_Ingredient.quantity).join(
-                models.GRN, models.GRN_has_Ingredient.GRN_id == models.GRN.id
-                ).filter(
-                models.GRN_has_Ingredient.GRN_id == grn.id,
-                models.GRN_has_Ingredient.Ingredient_id == ingredient.id
-                ).first()
+                filtered_data = filter(lambda record: record.Ingredient_id == ingredient.id, grn_ingredient_record)
+                filtered_data = list(filtered_data)
+                if filtered_data and len(filtered_data) > 0:
 
-                if old:
-                    old_quantity = old[0]
-                else: 
-                    old_quantity = 0
-                
-                # update ingredient
-                if old_quantity != ingredient_data.quantity:
-                    ingredient.currentQuantity = (ingredient.currentQuantity - old_quantity + ingredient_data.quantity)
+                    # ingredient was already in the GRN
+                    # update ingredient if quantity has changed
+                    old_quantity_from_grn = int(filtered_data[0].quantity)
+                    if old_quantity_from_grn != new_ingredient_data.quantity:
+                        ingredient.currentQuantity = (
+                                ingredient.currentQuantity - int(old_quantity_from_grn) + new_ingredient_data.quantity)
+                        db.add(ingredient)
+                        db.commit()
+                        db.refresh(ingredient)
+
+                        # update grn has ingredient table
+
+                        grn_has_ingredient = filtered_data[0]
+                        grn_has_ingredient.Ingredient_id = ingredient.id
+                        grn_has_ingredient.quantity = new_ingredient_data.quantity
+                        db.add(grn_has_ingredient)
+                        db.commit()
+                        db.refresh(grn_has_ingredient)
+                else:
+                    # ingredient not in the GRN
+                    # add new ingredient to the GRN
+                    grn_ingredient = models.GRN_has_Ingredient(
+                        GRN_id=grn_id,
+                        Ingredient_id=ingredient.id,
+                        quantity=new_ingredient_data.quantity
+                    )
+                    db.add(grn_ingredient)
+                    db.commit()
+                    # since this is a new record, need to increase the current quantity of the ingredients
+                    ingredient.currentQuantity = (ingredient.currentQuantity + new_ingredient_data.quantity)
                     db.add(ingredient)
                     db.commit()
-                    db.refresh(ingredient)
-                
-                # update grn has ingredient table
-                grn_has_ingredient = db.query(models.GRN_has_Ingredient).filter(models.GRN_has_Ingredient.GRN_id == grn_id).first()
-                grn_has_ingredient.Ingredient_id = ingredient.id
-                grn_has_ingredient.quantity = ingredient_data.quantity
-                db.add(grn_has_ingredient)
-                db.commit()
-                db.refresh(grn_has_ingredient)
             else:
                 # if ingredient is not found
                 raise HTTPException(status_code=404, detail="Ingredient not found")
+
+        # check if existing ingredients has been removed in new_ingredient_data
+        for grn_db_record in grn_ingredient_record:
+            # find relevant ingredient for the GRN
+            ingredient_db_record = db.query(models.Ingredient).filter(models.Ingredient.id == grn_db_record.Ingredient_id).first()
+            result = filter(lambda record: record.name == ingredient_db_record.name, grn_data.ingredients)
+            result = list(result)
+            if ingredient_db_record and len(result) == 0:
+                # have to reduce the current quantity in ingredient record, since the ingredient wasn't included in
+                # the new data
+                ingredient_db_record.currentQuantity = (
+                        ingredient_db_record.currentQuantity - int(grn_db_record.quantity))
+                db.add(ingredient_db_record)
+                db.commit()
+                # since new data don't have the ingredient, remove the ingredient from the GRN
+                db.delete(grn_db_record)
+                db.commit()
+
+    else:
+        # ingredients has been removed from the grn
+        for grn_record in grn_ingredient_record:
+            ingredient_db_record = db.query(models.Ingredient).filter(models.Ingredient.id == grn_record.Ingredient_id).first()
+            db.delete(grn_record)
+            db.commit()
+            # need to update the current quantity
+            ingredient_db_record.currentQuantity = (
+                    ingredient_db_record.currentQuantity - int(grn_record.quantity))
+            db.add(ingredient_db_record)
+            db.commit()
+        print('ingredients removed from the GRN')
+
+
 
     # Commit all changes
     db.commit()
