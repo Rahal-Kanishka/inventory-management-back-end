@@ -15,8 +15,6 @@ class UpdateBaseIngredient(BaseModel):
     id: int
     name: str
     description: str
-    currentQuantity: Optional[int] = 0
-    image: Optional[str] = ''
 
 class RecipeIngredientCreate(BaseModel):
     name: str

@@ -1,7 +1,7 @@
 from datetime import datetime
 from datetime import date
 
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, Table, DateTime, Date
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, Table, DateTime, Date, DECIMAL
 from sqlalchemy.orm import relationship
 
 from utils.database import Base
@@ -23,16 +23,6 @@ class Recipe(Base):
     description = Column(String(255))
 
 
-class ProductType(Base):
-    __tablename__ = 'ProductType'
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    name = Column(String(100))
-    code = Column(String(100))
-    batchSize = Column(Integer, default=0)
-    expireDuration = Column(Integer, default=0)
-
-
 class Product(Base):
     __tablename__ = 'Product'
 
@@ -40,7 +30,9 @@ class Product(Base):
     name = Column(String(100))
     currentQuantity = Column(Integer, default=0)
     description = Column(String(500))
-    ProductType_id = Column(Integer, ForeignKey('producttype.id'))
+    ProductType = Column(String(100), nullable=False, default='unknown')
+    Recipe_id = Column(Integer, ForeignKey('recipe.id'))
+    sellingPrice = Column(DECIMAL, default=0.0, nullable=False )
 
 
 class LocationHasUsers(Base):
@@ -55,7 +47,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
-    email = Column(String(500))
+    email = Column(String(500), unique=True, nullable=False)
     contactNo = Column(String(500))
     createdOn = Column(String(500))
     password = Column(String(500))
@@ -87,8 +79,7 @@ class Ingredient(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100), unique=True)
     description = Column(String(255))
-    currentQuantity = Column(Integer)
-    image = Column(String)
+    grn = relationship("GRN",secondary="GRN_has_Ingredient", back_populates="ingredient")
 
 
 class GRN(Base):
@@ -96,6 +87,15 @@ class GRN(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     issuedDate = Column(DateTime, default=datetime.now)
+    ingredient = relationship("Ingredient",secondary="GRN_has_Ingredient", back_populates="grn")
+
+
+class GRN_has_Ingredient(Base):
+    __tablename__ = 'GRN_has_Ingredient'
+
+    GRN_id = Column(Integer, ForeignKey('GRN.id'), primary_key=True)
+    Ingredient_id = Column(Integer, ForeignKey('Ingredient.id'), primary_key=True)
+    currentQuantity = Column(Integer, default=0)
 
 class Batch(Base):
     __tablename__ = 'Batch'
@@ -118,18 +118,3 @@ class RecipeHasIngredient(Base):
     Recipe_id = Column(Integer, ForeignKey("Recipe.id"), primary_key=True)
     Ingredient_id = Column(Integer, ForeignKey("Ingredient.id"), primary_key=True)
     quantity = Column(Integer)
-
-
-class Recipe_has_producttype(Base):
-    __tablename__ = 'Recipe_has_ProductType'  # Matches the table name in your database
-
-    Recipe_id = Column(Integer, ForeignKey('recipe.id'), primary_key=True)  # Foreign key reference to `recipe`
-    ProductType_id = Column(Integer, ForeignKey('producttype.id'), primary_key=True)  # Foreign key reference to `producttype`
-
-
-class GRN_has_Ingredient(Base):
-    __tablename__ = 'GRN_has_Ingredient'
-
-    GRN_id = Column(Integer, ForeignKey('GRN.id'), primary_key=True)
-    Ingredient_id = Column(Integer, ForeignKey('Ingredient.id'), primary_key=True)
-    quantity = Column(Integer, default=0)
