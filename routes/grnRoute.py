@@ -48,8 +48,6 @@ async def create_GRN(grn_data: BaseGRN, db: db_dependency):
         if not ingredient:
             raise HTTPException(status_code=404, detail="Ingredient not found")
         else:
-            # if ingredient tuple already exists increase its quantity
-            ingredient.currentQuantity += ingredient_data.quantity
             db.add(ingredient)
             db.commit()
             db.refresh(ingredient)
@@ -58,7 +56,7 @@ async def create_GRN(grn_data: BaseGRN, db: db_dependency):
             GRN_ingredient = models.GRN_has_Ingredient(
                 GRN_id=new_GRN.id,
                 Ingredient_id=ingredient.id,
-                quantity=ingredient_data.quantity
+                currentQuantity=ingredient_data.quantity
             )
             db.add(GRN_ingredient)
             db.commit()
@@ -93,7 +91,7 @@ async def view_all_grns(db: db_dependency):
             ).first()
             if ingredient:
                 ingredients.append(
-                    IngredientInfo(name=ingredient.name, quantity=grn_ingredient.quantity)
+                    IngredientInfo(name=ingredient.name, quantity=grn_ingredient.currentQuantity)
                 )
 
         # Append GRN details to the list
@@ -118,7 +116,7 @@ async def view_grn(grn_id: int, db: db_dependency):
 
     # get ingredients and quantities for the grn
     ingredients_data = (
-        db.query(models.Ingredient.name, models.GRN_has_Ingredient.quantity)
+        db.query(models.Ingredient.name, models.GRN_has_Ingredient.currentQuantity)
         .join(models.GRN_has_Ingredient, models.GRN_has_Ingredient.Ingredient_id == models.Ingredient.id)
         .join(models.GRN, models.GRN.id == models.GRN_has_Ingredient.GRN_id)
         .filter(models.GRN_has_Ingredient.GRN_id == grn_id)
@@ -168,7 +166,7 @@ async def update_grn(grn_id: int, grn_data: GRNUpdate, db: db_dependency):
 
                     # ingredient was already in the GRN
                     # update ingredient if quantity has changed
-                    old_quantity_from_grn = int(filtered_data[0].quantity)
+                    old_quantity_from_grn = int(filtered_data[0].currentQuantity)
                     if old_quantity_from_grn != new_ingredient_data.quantity:
                         ingredient.currentQuantity = (
                                 ingredient.currentQuantity - int(old_quantity_from_grn) + new_ingredient_data.quantity)
@@ -180,7 +178,7 @@ async def update_grn(grn_id: int, grn_data: GRNUpdate, db: db_dependency):
 
                         grn_has_ingredient = filtered_data[0]
                         grn_has_ingredient.Ingredient_id = ingredient.id
-                        grn_has_ingredient.quantity = new_ingredient_data.quantity
+                        grn_has_ingredient.currentQuantity = new_ingredient_data.quantity
                         db.add(grn_has_ingredient)
                         db.commit()
                         db.refresh(grn_has_ingredient)
@@ -212,7 +210,7 @@ async def update_grn(grn_id: int, grn_data: GRNUpdate, db: db_dependency):
                 # have to reduce the current quantity in ingredient record, since the ingredient wasn't included in
                 # the new data
                 ingredient_db_record.currentQuantity = (
-                        ingredient_db_record.currentQuantity - int(grn_db_record.quantity))
+                        ingredient_db_record.currentQuantity - int(grn_db_record.currentQuantity))
                 db.add(ingredient_db_record)
                 db.commit()
                 # since new data don't have the ingredient, remove the ingredient from the GRN
@@ -227,7 +225,7 @@ async def update_grn(grn_id: int, grn_data: GRNUpdate, db: db_dependency):
             db.commit()
             # need to update the current quantity
             ingredient_db_record.currentQuantity = (
-                    ingredient_db_record.currentQuantity - int(grn_record.quantity))
+                    ingredient_db_record.currentQuantity - int(grn_record.currentQuantity))
             db.add(ingredient_db_record)
             db.commit()
         print('ingredients removed from the GRN')
