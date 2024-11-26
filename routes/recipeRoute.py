@@ -164,7 +164,7 @@ async def view_all_recipes(db: db_dependency):
             ).first()
             if ingredient:
                 ingredients.append(
-                    IngredientInfo(name=ingredient.name, quantity=recipe_ingredient.quantity)
+                    IngredientInfo(name=ingredient.name, quantity=recipe_ingredient.currentQuantity)
                 )
 
         # Append recipe details to the list
