@@ -57,36 +57,6 @@ async def create_recipe(recipe_data: BaseRecipeCreate, db: db_dependency):
         )
         db.add(recipe_ingredient)
     db.commit()
-
-    # Step 3: Process ProductType
-    product_name = recipe_data.product_name
-    logger.info(f"Product name provided: {product_name}")
-
-    # Check if ProductType exists with the given product_name
-    product_type = db.query(models.ProductType).filter(models.ProductType.name == product_name).first()
-    if not product_type:
-        logger.info(f"ProductType '{product_name}' not found. Creating new ProductType entry.")
-        product_type = models.ProductType(name=product_name, code=product_name[:4].upper(), batchSize=0,
-                                          expireDuration=0)
-        db.add(product_type)
-        db.commit()
-        db.refresh(product_type)
-
-    # Check if Product exists with the given product_name
-    product = db.query(models.Product).filter(models.Product.name == product_name).first()
-    if not product:
-        logger.info(f"Product '{product_name}' not found in Product table. Creating new Product entry.")
-        product = models.Product(name=product_name, currentQuantity=0, description="default product",
-                                 ProductType_id=product_type.id)
-        db.add(product)
-        db.commit()
-        db.refresh(product)
-
-    # Step 4: Link Recipe with ProductType in recipe_has_producttype
-    recipe_producttype_link = models.Recipe_has_producttype(Recipe_id=new_recipe.id, ProductType_id=product_type.id)
-    db.add(recipe_producttype_link)
-    db.commit()
-
     return RecipeResponse(
         id=new_recipe.id,
         name=new_recipe.name,
@@ -130,7 +100,7 @@ async def view_recipe(recipe_id: int, db: db_dependency):
 
     # Convert the dictionary to a list of recipes
     recipes = list(recipe_dict.values())
-    return recipes@router.get("/recipe/view/{recipe_id}")
+    return recipes
 
 
 @router.get("/recipe/search_by_name/{recipe_name}")
