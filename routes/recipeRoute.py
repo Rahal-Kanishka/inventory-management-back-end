@@ -130,7 +130,14 @@ async def view_recipe(recipe_id: int, db: db_dependency):
 
     # Convert the dictionary to a list of recipes
     recipes = list(recipe_dict.values())
-    return recipes
+    return recipes@router.get("/recipe/view/{recipe_id}")
+
+
+@router.get("/recipe/search_by_name/{recipe_name}")
+async def search_recipe_by_name(recipe_name: str, db: db_dependency):
+    return (db.query(Recipe)
+            .filter(Recipe.name.ilike(f"%{recipe_name}%"))
+            .all())
 
 
 @router.get("/recipe/view_all")
