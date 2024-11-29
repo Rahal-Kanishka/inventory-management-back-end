@@ -2,6 +2,7 @@ from datetime import datetime
 from datetime import date
 from typing import List
 from typing import Optional
+from decimal import Decimal
 
 from pydantic import BaseModel
 
@@ -128,3 +129,11 @@ class LocationResponse(LocationBase):
 class SearchUsersForLocation(BaseModel):
     name: str
     locationID: int
+
+
+class CreateProduct(BaseModel):
+    name: str
+    description: str
+    type: str
+    selling_price: Decimal = 0.0
+    Recipe_id: int

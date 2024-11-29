@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session, joinedload
 from typing import Annotated, Optional, List
 
 from models import models
-from classes.classes import GRNResponse, BaseGRN, IngredientInfo, GRNUpdate
+from classes.classes import CreateProduct
+from models.models import Recipe, Product
 from utils.database import SessionLocal
 
 import logging
@@ -37,3 +38,21 @@ async def getAllProducts(db: db_dependency):
     return (db.query(models.Product)
             .options(joinedload(models.Product.recipe))
             .all())
+
+
+@router.post("/product/add")
+async def addProduct(db: db_dependency, createProduct: CreateProduct):
+    recipe = db.query(Recipe).filter(Recipe.id == createProduct.Recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    db_product = Product(**createProduct.dict())
+    db.add(db_product)
+    db.commit()
+    db.refresh(db_product)
+    # return data
+
+    return (db.query(models.Product)
+            .options(joinedload(models.Product.recipe))
+            .filter(Product.id == db_product.id)
+            .first())
