@@ -15,6 +15,14 @@ class Order(Base):
     quantity = Column(Integer)
 
 
+class RecipeHasIngredient(Base):
+    __tablename__ = 'Recipe_has_Ingredient'
+
+    Recipe_id = Column(Integer, ForeignKey("Recipe.id"), primary_key=True)
+    Ingredient_id = Column(Integer, ForeignKey("Ingredient.id"), primary_key=True)
+    quantity = Column(Integer)
+
+
 class Recipe(Base):
     __tablename__ = 'Recipe'
 
@@ -22,6 +30,7 @@ class Recipe(Base):
     name = Column(String(100))
     description = Column(String(255))
     products = relationship("Product", back_populates='recipe')
+    ingredients = relationship("Ingredient", secondary="Recipe_has_Ingredient", back_populates='recipes')
 
 
 class Product(Base):
@@ -81,6 +90,7 @@ class Ingredient(Base):
     name = Column(String(100), unique=True)
     description = Column(String(255))
     grn = relationship("GRN",secondary="GRN_has_Ingredient", back_populates="ingredient")
+    recipes = relationship("Recipe", secondary="Recipe_has_Ingredient", back_populates='ingredients')
 
 
 class GRN(Base):
@@ -113,9 +123,3 @@ class Batch(Base):
 
 # models.py
 
-class RecipeHasIngredient(Base):
-    __tablename__ = 'Recipe_has_Ingredient'
-
-    Recipe_id = Column(Integer, ForeignKey("Recipe.id"), primary_key=True)
-    Ingredient_id = Column(Integer, ForeignKey("Ingredient.id"), primary_key=True)
-    quantity = Column(Integer)

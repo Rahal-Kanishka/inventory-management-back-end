@@ -45,7 +45,6 @@ class RecipeViewResponse(BaseModel):
     id: int
     name: str
     description: Optional[str] = ""
-    product_type: Optional[str] = ""
     ingredients: List[IngredientInfo] = []
 
 class BaseRecipeCreate(BaseModel):
