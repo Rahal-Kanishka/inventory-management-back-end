@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, joinedload
 from typing import Annotated, Optional, List
 
 from models import models
-from classes.classes import CreateProduct
+from classes.classes import CreateProduct, UpdateProduct
 from models.models import Recipe, Product
 from utils.database import SessionLocal
 
@@ -55,4 +55,25 @@ async def addProduct(db: db_dependency, createProduct: CreateProduct):
     return (db.query(models.Product)
             .options(joinedload(models.Product.recipe))
             .filter(Product.id == db_product.id)
+            .first())@router.post("/product/add")
+
+
+@router.put("/product/update")
+async def updateProduct(db: db_dependency, editProduct: UpdateProduct):
+    product = db.query(Product).filter(Product.id == editProduct.id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    recipe = db.query(Recipe).filter(Recipe.id == editProduct.Recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    for key, value in editProduct.dict().items():
+        setattr(product, key, value)
+
+    db.commit()
+    db.refresh(product)
+    return (db.query(models.Product)
+            .options(joinedload(models.Product.recipe))
+            .filter(Product.id == product.id)
             .first())

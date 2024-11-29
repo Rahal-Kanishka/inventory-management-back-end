@@ -137,3 +137,12 @@ class CreateProduct(BaseModel):
     type: str
     selling_price: Decimal = 0.0
     Recipe_id: int
+
+
+class UpdateProduct(BaseModel):
+    id: int
+    name: str
+    description: str
+    type: str
+    selling_price: Decimal = 0.0
+    Recipe_id: int
