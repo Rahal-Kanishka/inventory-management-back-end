@@ -21,6 +21,7 @@ class Recipe(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
     description = Column(String(255))
+    products = relationship("Product", back_populates='recipe')
 
 
 class Product(Base):
@@ -28,11 +29,11 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
-    currentQuantity = Column(Integer, default=0)
     description = Column(String(500))
-    ProductType = Column(String(100), nullable=False, default='unknown')
-    Recipe_id = Column(Integer, ForeignKey('recipe.id'))
-    sellingPrice = Column(DECIMAL, default=0.0, nullable=False )
+    type = Column(String(100), nullable=False, default='unknown')
+    Recipe_id = Column(Integer, ForeignKey('Recipe.id'))
+    selling_price = Column(DECIMAL, default=0.0, nullable=False )
+    recipe = relationship("Recipe", back_populates='products')
 
 
 class LocationHasUsers(Base):
