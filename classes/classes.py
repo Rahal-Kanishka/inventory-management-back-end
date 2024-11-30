@@ -136,6 +136,8 @@ class CreateProduct(BaseModel):
     description: str
     type: str
     selling_price: Decimal = 0.0
+    batch_size: int = 0
+    expire_duration: int = 0
     Recipe_id: int
 
 
@@ -145,4 +147,6 @@ class UpdateProduct(BaseModel):
     description: str
     type: str
     selling_price: Decimal = 0.0
+    batch_size: int = 0
+    expire_duration: int = 0
     Recipe_id: int

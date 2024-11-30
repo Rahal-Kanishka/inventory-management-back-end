@@ -40,8 +40,10 @@ class Product(Base):
     name = Column(String(100))
     description = Column(String(500))
     type = Column(String(100), nullable=False, default='unknown')
+    selling_price = Column(DECIMAL, default=0.0, nullable=False)
+    batch_size = Column(Integer, default=0, nullable=False)
+    expire_duration = Column(Integer, default=0, nullable=False)
     Recipe_id = Column(Integer, ForeignKey('Recipe.id'))
-    selling_price = Column(DECIMAL, default=0.0, nullable=False )
     recipe = relationship("Recipe", back_populates='products')
 
 

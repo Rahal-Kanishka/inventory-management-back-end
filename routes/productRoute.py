@@ -55,7 +55,7 @@ async def addProduct(db: db_dependency, createProduct: CreateProduct):
     return (db.query(models.Product)
             .options(joinedload(models.Product.recipe))
             .filter(Product.id == db_product.id)
-            .first())@router.post("/product/add")
+            .first())
 
 
 @router.put("/product/update")
