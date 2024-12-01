@@ -29,24 +29,27 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.get("/ingredient/all")
 async def getAllIngredient(db: db_dependency):
-    result = (db
-              .query(models.models.Ingredient.id,
-                     models.models.Ingredient.name,
-                     models.models.Ingredient.description,
-                     cast(func.sum(coalesce(models.models.GRN_has_Ingredient.currentQuantity, 0)), Integer).label(
-                         'totalQuantity'))
-              .join(models.models.GRN_has_Ingredient,
-                    models.models.Ingredient.id == models.models.GRN_has_Ingredient.Ingredient_id,
-                    isouter=True)
-              .group_by(models.models.Ingredient.id, models.models.Ingredient.name,
-                        models.models.Ingredient.description)
-              .all())
-    # convert to dictionary type
-    processed_results = [
-        {"id": ingredient_id, "name": name, "description": description, "totalQuantity": int(totalQuantity)}
-        for ingredient_id, name, description, totalQuantity in result
+
+    second_result = (db
+                     .query(models.models.Ingredient.id,
+                            models.models.Ingredient.name,
+                            models.models.Ingredient.description,
+                            models.models.CurrentStock.current_quantity)
+                     .join(models.models.CurrentStock,
+                           models.models.CurrentStock.Ingredient_id == models.models.Ingredient.id,
+                           isouter=True)
+                     .all())
+
+    ingredients = [
+        {
+            "id": r.id,
+            "name": r.name,
+            "description": r.description,
+            "totalQuantity": r[3] or 0  # Handle NULL as 0
+        }
+        for r in second_result
     ]
-    return processed_results
+    return ingredients
 
 
 @router.put("/ingredient/edit")
