@@ -59,10 +59,20 @@ async def create_GRN(grn_data: BaseGRN, db: db_dependency):
                 currentQuantity=ingredient_data.quantity
             )
             db.add(GRN_ingredient)
+
+            # Optionally: Update the current stock of the ingredient
+            current_stock = ingredient.current_stock
+            if current_stock:
+                current_stock.current_quantity += ingredient_data.quantity
+            else:
+                # Create a new stock record if it doesn't exist
+                new_stock = models.CurrentStock(
+                    Ingredient_id=ingredient.id,
+                    current_quantity=ingredient_data.quantity
+                )
+                db.add(new_stock)
             db.commit()
-
             db.refresh(new_GRN)
-
     return GRNResponse(
         id=new_GRN.id,
         issuedDate=new_GRN.issuedDate,
