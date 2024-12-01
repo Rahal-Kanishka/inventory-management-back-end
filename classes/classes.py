@@ -17,17 +17,21 @@ class UpdateBaseIngredient(BaseModel):
     name: str
     description: str
 
+
 class RecipeIngredientCreate(BaseModel):
     name: str
     quantity: int
+
 
 class IngredientInfo(BaseModel):
     name: str
     quantity: int
 
+
 # create GRN
 class BaseGRN(BaseModel):
     ingredients: List[IngredientInfo] = []
+
 
 # response for create GRN
 class GRNResponse(BaseModel):
@@ -48,15 +52,18 @@ class RecipeViewResponse(BaseModel):
     description: Optional[str] = ""
     ingredients: List[IngredientInfo] = []
 
+
 class BaseRecipeCreate(BaseModel):
     name: str
     description: Optional[str] = ""
     product_name: Optional[str] = "Miscellaneous"
     ingredients: List[RecipeIngredientCreate]
 
+
 class RecipeIngredientUpdate(BaseModel):
     name: str
     quantity: int
+
 
 class BaseRecipeUpdate(BaseModel):
     name: Optional[str] = None
@@ -69,6 +76,7 @@ class RecipeResponse(BaseModel):
     id: int
     name: str
     description: Optional[str] = ""
+
 
 class BaseRecipe(BaseModel):
     name: str
@@ -95,27 +103,31 @@ class UpdateBaseUser(BaseModel):
     password: str
     UserType_id: int
 
+
 class BaseBatchCreate(BaseModel):
     name: str
-    productionDate: date
-    Recipe_id: int
-    initialQuantity: int
-    availableQuantity: int
-    dateOfExpiry: date
-    User_id: int
+    productionDate: datetime = datetime.now()
+    product_id: int
+    batch_count: int = 1  # default to a one batch
+    dateOfExpiry: datetime = datetime.now()
+
 
 class BaseBatch(BaseBatchCreate):
     id: Optional[int] = None
+
 
 class LocationBase(BaseModel):
     name: str
     address: str
 
+
 class LocationCreate(LocationBase):
     pass
 
+
 class LocationUpdate(LocationBase):
     pass
+
 
 class LocationResponse(LocationBase):
     id: int
