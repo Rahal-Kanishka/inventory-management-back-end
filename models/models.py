@@ -45,6 +45,7 @@ class Product(Base):
     expire_duration = Column(Integer, default=0, nullable=False)
     Recipe_id = Column(Integer, ForeignKey('Recipe.id'))
     recipe = relationship("Recipe", back_populates='products')
+    batches = relationship("Batch", back_populates='product')
 
 
 class LocationHasUsers(Base):
@@ -93,6 +94,15 @@ class Ingredient(Base):
     description = Column(String(255))
     grn = relationship("GRN",secondary="GRN_has_Ingredient", back_populates="ingredient")
     recipes = relationship("Recipe", secondary="Recipe_has_Ingredient", back_populates='ingredients')
+    current_stock = relationship("CurrentStock", back_populates='ingredient', uselist=False)
+
+
+class CurrentStock(Base):
+    __tablename__ = 'Current_Stock'
+
+    Ingredient_id = Column(Integer, ForeignKey('Ingredient.id'), primary_key=True)
+    current_quantity = Column(Integer, nullable=False, default=0)
+    ingredient = relationship("Ingredient", back_populates='current_stock')
 
 
 class GRN(Base):
@@ -110,17 +120,18 @@ class GRN_has_Ingredient(Base):
     Ingredient_id = Column(Integer, ForeignKey('Ingredient.id'), primary_key=True)
     currentQuantity = Column(Integer, default=0)
 
+
 class Batch(Base):
     __tablename__ = 'Batch'
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100))
-    productionDate = Column(Date)
-    Recipe_id = Column(Integer, ForeignKey("recipe.id"))
+    productionDate = Column(DateTime, default=datetime.now())
     initialQuantity = Column(Integer)
     availableQuantity = Column(Integer)
     dateOfExpiry = Column(Date)
-    User_id = Column(Integer, ForeignKey("user.id"))
+    product_id = Column(Integer, ForeignKey("Product.id"))
+    product = relationship("Product", back_populates="batches")
 
 
 # models.py
