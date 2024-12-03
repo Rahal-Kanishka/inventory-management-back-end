@@ -13,6 +13,8 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
     quantity = Column(Integer)
+    product_id = Column(Integer, ForeignKey('Product.id'))
+    product = relationship('Product', back_populates='orders')
 
 
 class RecipeHasIngredient(Base):
@@ -46,6 +48,7 @@ class Product(Base):
     Recipe_id = Column(Integer, ForeignKey('Recipe.id'))
     recipe = relationship("Recipe", back_populates='products')
     batches = relationship("Batch", back_populates='product')
+    orders = relationship('Order', back_populates='product')
 
 
 class LocationHasUsers(Base):
