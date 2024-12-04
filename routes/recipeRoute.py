@@ -31,7 +31,7 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
-@router.post("/recipe/add", response_model=RecipeResponse)
+@router.post("/recipe/add")
 async def create_recipe(recipe_data: BaseRecipeCreate, db: db_dependency):
     # logger.info(f"Creating Recipe: {recipe_data.name}")
 
@@ -45,10 +45,7 @@ async def create_recipe(recipe_data: BaseRecipeCreate, db: db_dependency):
     for ingredient_data in recipe_data.ingredients:
         ingredient = db.query(models.Ingredient).filter(models.Ingredient.name == ingredient_data.name).first()
         if not ingredient:
-            ingredient = models.Ingredient(name=ingredient_data.name, currentQuantity=0, description="")
-            db.add(ingredient)
-            db.commit()
-            db.refresh(ingredient)
+            raise HTTPException(status_code=404, detail="Ingredient not found")
 
         recipe_ingredient = models.RecipeHasIngredient(
             Recipe_id=new_recipe.id,
@@ -57,12 +54,7 @@ async def create_recipe(recipe_data: BaseRecipeCreate, db: db_dependency):
         )
         db.add(recipe_ingredient)
     db.commit()
-    return RecipeResponse(
-        id=new_recipe.id,
-        name=new_recipe.name,
-        description=new_recipe.description,
-        ingredients=recipe_data.ingredients
-    )
+    return await view_recipe(new_recipe.id, db)
 
 
 @router.get("/recipe/view/{recipe_id}")
