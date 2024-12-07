@@ -141,6 +141,17 @@ class SearchUsersForLocation(BaseModel):
     name: str
     locationID: int
 
+class CreateOrder(BaseModel):
+    name: str
+    quantity: int
+    Product_id: int
+
+class UpdateOrder(BaseModel):
+    id: int
+    name: str
+    quantity: int
+    Product_id: int
+
 
 class CreateProduct(BaseModel):
     name: str

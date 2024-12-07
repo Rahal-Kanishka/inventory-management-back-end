@@ -95,6 +95,15 @@ async def updateIngredient(db: db_dependency, updateBaseIngredient: UpdateBaseIn
 
 @router.post("/ingredient/add")
 async def createIngredient(db: db_dependency, ingredient: BaseIngredient):
+    existing_ingredient = (db
+                           .query(models.models.Ingredient)
+                           .filter(models.models.Ingredient.name == ingredient.name)
+                           .first())
+    if existing_ingredient:
+        return {"error": "Ingredient already exists."}, 409
+
+
+
     db_ingredient = models.models.Ingredient(**ingredient.dict())
     db.add(db_ingredient)
     db.commit()

@@ -8,13 +8,13 @@ from utils.database import Base
 
 
 class Order(Base):
-    __tablename__ = 'Order'
+    __tablename__ = 'order'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
     quantity = Column(Integer)
-    product_id = Column(Integer, ForeignKey('Product.id'))
-    product = relationship('Product', back_populates='orders')
+    Product_id = Column(Integer, ForeignKey('Product.id'))
+    product = relationship("Product", back_populates="orders")
 
 
 class RecipeHasIngredient(Base):
