@@ -27,6 +27,10 @@ class IngredientInfo(BaseModel):
     name: str
     quantity: int
 
+class Current_Stock(BaseModel):
+    Ingredient_id: int
+    current_quantity: int
+
 
 # create GRN
 class BaseGRN(BaseModel):
