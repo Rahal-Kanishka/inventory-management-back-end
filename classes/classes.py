@@ -108,11 +108,8 @@ class UpdateBaseUser(BaseModel):
 
 
 class BaseBatchCreate(BaseModel):
-    name: str
-    productionDate: datetime = datetime.now()
     product_id: int
     batch_count: int = 1  # default to a one batch
-    dateOfExpiry: datetime = datetime.now()
 
 
 class BaseBatch(BaseBatchCreate):

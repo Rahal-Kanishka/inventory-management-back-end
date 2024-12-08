@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import func, cast, Integer
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import Annotated, List
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -24,12 +24,12 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
-@router.get("/batch/all", response_model=List[BaseBatch])
+@router.get("/batch/all")
 async def get_all_batches(db: db_dependency):
-    return db.query(models.Batch).all()
+    return db.query(models.Batch).options(joinedload(models.Batch.product)).all()
 
 
-@router.post("/batch/add", response_model=BaseBatch)
+@router.post("/batch/add")
 async def create_batch(db: db_dependency, batch_data: BaseBatchCreate):
     new_batch = None
     # validate against product
@@ -103,29 +103,7 @@ async def create_batch(db: db_dependency, batch_data: BaseBatchCreate):
             if current_stock:
                 current_stock.current_quantity -= (int(recipe_ingredient_record["quantity"]) * batch_data.batch_count)
         db.commit()
-    return new_batch
-
-
-@router.put("/batch/edit/{id}", response_model=BaseBatch)
-async def update_batch(id: int, db: db_dependency, batch_data: BaseBatchCreate):
-    batch = db.query(models.Batch).filter(models.Batch.id == id).first()
-    if not batch:
-        raise HTTPException(status_code=404, detail="Batch not found")
-
-    for field, value in batch_data.dict().items():
-        setattr(batch, field, value)
-
-    db.commit()
-    db.refresh(batch)
-    return batch
-
-
-@router.delete("/batch/delete/{id}")
-async def delete_batch(id: int, db: db_dependency):
-    batch = db.query(models.Batch).filter(models.Batch.id == id).first()
-    if not batch:
-        raise HTTPException(status_code=404, detail="Batch not found")
-
-    db.delete(batch)
-    db.commit()
-    return {"message": "Batch deleted successfully"}
+    return (db.query(models.Batch)
+            .options(joinedload(models.Batch.product))
+            .filter(models.Batch.id == new_batch.id)
+            .first())
