@@ -40,6 +40,13 @@ async def getAllProducts(db: db_dependency):
             .all())
 
 
+@router.get("/product/search_by_name/{product_name}")
+async def search_product_by_name(product_name: str, db: db_dependency):
+    return (db.query(Product)
+            .filter(Product.name.ilike(f"%{product_name}%"))
+            .all())
+
+
 @router.post("/product/add")
 async def addProduct(db: db_dependency, createProduct: CreateProduct):
     recipe = db.query(Recipe).filter(Recipe.id == createProduct.Recipe_id).first()
