@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
 from routes import orderRoute, ingredientRoute, batchRoute, locationRoute, recipeRoute, grnRoute, productRoute
-from routes import userRoute
+from routes import userRoute, dashboardRoute
 from utils.database import engine
 from models import models
 import logging
@@ -26,6 +26,8 @@ app.include_router(recipeRoute.router)
 app.include_router(grnRoute.router)
 
 app.include_router(productRoute.router)
+
+app.include_router(dashboardRoute.router)
 
 models.Base.metadata.create_all(bind=engine)
 
