@@ -93,5 +93,6 @@ async def addOrder(db: db_dependency, createOrder: CreateOrder):
         "id": db_order.id,
         "name": db_order.name,
         "quantity": db_order.quantity,
-        "product_id": db_order.Product_id
+        "product_id": db_order.Product_id,
+        "batch_name": batch.name
     }
