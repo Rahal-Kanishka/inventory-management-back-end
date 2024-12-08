@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
+from fastapi.responses import JSONResponse
 from fastapi.params import Query
 from sqlalchemy import Integer
 from sqlalchemy.sql.functions import coalesce
@@ -100,7 +101,10 @@ async def createIngredient(db: db_dependency, ingredient: BaseIngredient):
                            .filter(models.models.Ingredient.name == ingredient.name)
                            .first())
     if existing_ingredient:
-        return {"error": "Ingredient already exists."}, 409
+        return JSONResponse(
+            status_code=409,
+            content={"error": f"Ingredient '{ingredient.name}' already exists."}
+        )
 
 
 
